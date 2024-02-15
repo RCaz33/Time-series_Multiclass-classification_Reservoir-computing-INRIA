@@ -1,0 +1,1 @@
+timestamp,raw acceleration / x [m/s^2],raw acceleration / y [m/s^2],raw acceleration / z [m/s^2],rotation speed / x [rad/s],rotation speed / y [rad/s],rotation speed / z [rad/s],magnetic field strength / x [uT],magnetic field strength / y [uT],magnetic field strength / z [uT],quaternion (w),quaternion (x),quaternion (y),quaternion (z)
