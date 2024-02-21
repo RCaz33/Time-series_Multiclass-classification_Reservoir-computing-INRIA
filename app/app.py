@@ -97,6 +97,10 @@ def main():
         ax1.set(xlim=[position_x.min(),position_x.max()],\
                 ylim=[position_y.min(),position_y.max()],\
                     xlabel='position X', ylabel='position Y')
+        ax1.set_title("Position")
+        ax2.set_yticklabels("")
+        ax2.set_title("Predictions")
+
         the_plot = st.pyplot(fig)
         def update():
             x = position_x[:i]
