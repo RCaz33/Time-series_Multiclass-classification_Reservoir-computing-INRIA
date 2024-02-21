@@ -51,3 +51,5 @@ Application streamlit:
 3- executer app.py (les requirements seront automatiquement installés)
 
 L'application permet de selectionner une des données enregistrée et de voir pas à pas la prédiction donnée par le modèle RandomForestClassifier
+
+![Alt text]("Capture d’écran 2024-02-21 à 22.39.20.png")
