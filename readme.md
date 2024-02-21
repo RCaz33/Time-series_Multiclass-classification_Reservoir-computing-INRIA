@@ -29,3 +29,10 @@ représenter les composantes d’un quaternion, une représentation mathématiqu
 orientation dans l’espace. En d’autres termes, cela va décrire l’orientation 3D du
 capteur.
 
+Les differents notebooks sont organisé :
+- visualisation : 
+- feature importance : 
+- feature ingineering :
+- reservoir_computing
+- reservoir_deep
+- realtime
