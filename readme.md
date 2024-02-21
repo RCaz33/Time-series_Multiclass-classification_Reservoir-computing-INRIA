@@ -29,10 +29,25 @@ représenter les composantes d’un quaternion, une représentation mathématiqu
 orientation dans l’espace. En d’autres termes, cela va décrire l’orientation 3D du
 capteur.
 
+
 Les differents notebooks sont organisé :
 - visualisation : 
-- feature importance : 
-- feature ingineering :
-- reservoir_computing
-- reservoir_deep
-- realtime
+    permet d'afficher les positions du capteur en 3 dimensions pendant l'aquisition d'un chiffre (peu prendre en compte les intervalles de temps irreguliers en moyennant l'acceleration sur 2 pas de temps).
+- feature_importance : 
+    Analyse ANOVA et comparaison aux coefficient (features_importance) pour les modèles scikit-learn 'LogisticRegression' et 'RandomForestClassifier' optimisés. Comparaison de la precision avec des modèles optimisés parcimonieux. (precision :0.94, recall :0.93 )
+- feature_ingineering : 
+    Optimisation de 3 modèles scikit-learn (LogisticRegression(), DecisionTreeClassifier(), RandomForestClassifier()) par feature engineering. (score :0.96, time :0.0044)
+- reservoir_computing :
+    Entrainement d'un reservoir simple (model = [source >> reservoir, source] >> readout) et optimisation du nombre de neuronnes, leaking rate et spectral radius. Prediction par pas de temps (score sur tout le dataset :0.8137).
+- reservoir_deep :
+    Architecture de reservoir complexes (HierarchicalESN, DeepESLmodel, Multi_input)
+- realtime : 
+    Optimisation fine du modèle RandomForest pour l'application
+
+
+Application streamlit:
+1- techarger localement.
+2- créer virtual environment
+3- executer app.py (les requirements seront automatiquement installés)
+
+L'application permet de selectionner une des données enregistrée et de voir pas à pas la prédiction donnée par le modèle RandomForestClassifier
