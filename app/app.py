@@ -1,3 +1,4 @@
+# import core librairies
 import streamlit as st
 import os
 import random
@@ -14,14 +15,9 @@ def install_dependencies():
 
 if not os.path.exists(".installed"):
     install_dependencies()
-    # Create a flag file to indicate that dependencies are installed
     open(".installed", "w").close()
 
-
-### install dependencies
-
-
-
+# import librairies
 import pandas as pd
 import numpy as np
 from utils import calculate_position_irregular, stepwise_predictions, linearize, make_binary
@@ -37,10 +33,8 @@ import seaborn as sns
 
 
 def main():
-    st.title('6Tron sensor number determination')
-
-
-
+    st.title('AI4Industry : UseCase CATIE')
+    st.header('6Tron sensor for number determination')
     row1_col1, row1_col2= st.columns(2)
     with st.container(border=True):
         with row1_col1:
@@ -63,39 +57,38 @@ def main():
             iteration = st.selectbox('select iteration', np.arange(iterations)+1)
 
     # get filename
-    if folder == '../data/group3/config_1':
+    if group == 'group1_h':
         filename = folder + '/' + str(number) + '_' + str(iteration) + '.csv'
-    elif folder == '../data/h_config1-lcb':
+    elif group == 'group2_h':
         filename = folder + '/h_' + str(number) + '_' + str(iteration) + '.csv'
-    elif folder == '../data/v_config1-lcb':
+    elif group == 'group3_v':
         filename = folder + '/v_config1_' + str(number) + '_' + str(iteration) + '.csv'
 
+    but = st.button('Press to proceed')
 
-    row2_col1, row2_col2= st.columns(2)
+    if but:
+        row2_col1, row2_col2= st.columns(2)
 
-    # load file
-    data = pd.read_csv(filename)
-    # calculate position
-    position_x = calculate_position_irregular(data.raw_acceleration_x, data.t)
-    position_y = calculate_position_irregular(data.raw_acceleration_y, data.t)
-    position_z = calculate_position_irregular(data.raw_acceleration_z, data.t)
+        # load file
+        data = pd.read_csv(filename)
+        # calculate position
+        position_x = calculate_position_irregular(data.raw_acceleration_x, data.t)
+        position_y = calculate_position_irregular(data.raw_acceleration_y, data.t)
+        position_z = calculate_position_irregular(data.raw_acceleration_z, data.t)
 
+        
 
+        with st.spinner('Calculate step-by-step predictions...'):
+                # calculate features
+                num,_ = stepwise_predictions(data)
+                # make predictions
+                model = pickle.load(open('ressources/RandomForestClasssifer_2D.sav', 'rb'))
+                scaler = pickle.load(open('ressources/scaler', 'rb'))
+                preds = (model.predict(scaler.transform(num.fillna(0))))
+                # display predictions
+                preds_bin = [make_binary(b) for b in preds]
+                target_bin = np.tile(make_binary(number),(len(preds),1))
 
-    with st.spinner('Calculate step-by-step predictions...'):
-            # calculate features
-            num,_ = stepwise_predictions(data)
-            # make predictions
-            model = pickle.load(open('ressources/RandomForestClasssifer_2D.sav', 'rb'))
-            scaler = pickle.load(open('ressources/scaler', 'rb'))
-            preds = (model.predict(scaler.transform(num.fillna(0))))
-            # display predictions
-            preds_bin = [make_binary(b) for b in preds]
-            target_bin = np.tile(make_binary(number),(len(preds),1))
-
-
-    but_ = st.button('press to start simulation')
-    if but_:
         # make figure
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 6))  # Create a figure with two axes
         t = len(data)
