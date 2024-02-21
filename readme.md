@@ -1,4 +1,4 @@
-Dans le cadre de l’AI 4 Industry, nous avons eu l’opportunité de participer au Use Case de
+Dans le cadre de l’AI 4 Industry (https://www.ai4industry.fr/), nous avons eu l’opportunité de participer au Use Case de
 CATIE, centre technologique spécialisé dans la recherche, le développement et l’innovation
 dans les domaines de l’information et de l’électronique.
 -https://www.catie.fr/
