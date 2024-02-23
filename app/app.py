@@ -26,6 +26,7 @@ import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
 import plotly.express as px
 import seaborn as sns
+import reservoirpy as rpy
 
 
 
@@ -89,6 +90,11 @@ def main():
                 preds_bin = [make_binary(b) for b in preds]
                 target_bin = np.tile(make_binary(number),(len(preds),1))
 
+                # # reservoir
+                # model_res = pickle.load(open('ressources/RC_ESN_sequential.sav','rb'))
+                # preds_res = model_res.run(data)
+                # preds_bin_res = [make_binary(b) for b in preds_res]
+
         # make figure
         fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 6))  # Create a figure with two axes
         t = len(data)
@@ -99,7 +105,10 @@ def main():
                     xlabel='position X', ylabel='position Y')
         ax1.set_title("Position")
         ax2.set_yticklabels("")
-        ax2.set_title("Predictions")
+        ax2.set_title("Predictions RFC")
+
+        # ax3.set_yticklabels("")
+        # ax3.set_title("Predictions reservoir")
 
         the_plot = st.pyplot(fig)
         def update():
@@ -112,10 +121,17 @@ def main():
             pred_bin = (np.concatenate((preds_bin[:1+i] , np.tile(np.zeros(10),(len(preds)-i+1,1))), axis=0))
             sns.heatmap(pred_bin,alpha=0.5, cbar=False, yticklabels=False, ax=ax2)
             sns.heatmap(target_bin,alpha=0.2, cbar=False, yticklabels=False, ax=ax2)
+
+            # pred_bin_res = (np.concatenate((preds_bin_res[:1+i] , np.tile(np.zeros(10),(len(preds)-i+1,1))), axis=0))
+            # sns.heatmap(pred_bin_res,alpha=0.5, cbar=False, yticklabels=False, ax=ax3)
+            # sns.heatmap(target_bin,alpha=0.2, cbar=False, yticklabels=False, ax=ax3)
+
+
             the_plot.pyplot(fig)
         
 
         for i in range(t): 
+            print(i)
             update()
 
 
