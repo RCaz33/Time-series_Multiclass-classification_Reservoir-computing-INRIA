@@ -20,7 +20,7 @@ if not os.path.exists(".installed"):
 # import librairies
 import pandas as pd
 import numpy as np
-from utils import calculate_position_irregular, stepwise_predictions, linearize, make_binary
+from utils import calculate_position_irregular, stepwise_predictions, linearize, make_binary, double_integrate
 import pickle
 import matplotlib.pyplot as plt
 from matplotlib.animation import FuncAnimation
@@ -32,50 +32,59 @@ import reservoirpy as rpy
 
 
 
-
 def main():
-    st.title('AI4Industry : UseCase CATIE')
+    st.title('AI4Industry 2024: UseCase CATIE')
     st.header('6Tron sensor for number determination')
     row1_col1, row1_col2= st.columns(2)
     with st.container(border=True):
         with row1_col1:
-            group = st.selectbox('select a group', ['group1_h','group2_h','group3_v'])
-        with row1_col2:
-            number = st.selectbox('select a number', range(10))
-
+            group = st.selectbox('select a dataset', ['Horizontal group1','Horizontal group2','Vertical group3'])
+            st.text("After selecting the number to predict\nand the iteration, press button below")
         # get iterations
-        if group == 'group1_h':
+        if group == 'Horizontal group1':
             folder = '../data/group3/config_1'
-            iterations = np.max([int(i.split('_')[1].split('.')[0]) for i in os.listdir(folder)])
-        elif group == 'group2_h':
+            _ = [int(i.split('_')[1].split('.')[0]) for i in os.listdir(folder)]
+            iter_min, iter_max = np.min(_), np.max(_)
+        elif group == 'Horizontal group2':
             folder = '../data/h_config1-lcb'
-            iterations = np.max([int(i.split('_')[2].split('.')[0]) for i in os.listdir(folder)])
-        elif group == 'group3_v':
+            _ = [int(i.split('_')[1].split('.')[0]) for i in os.listdir(folder)]
+            iter_min, iter_max = np.min(_), np.max(_)
+        elif group == 'Vertical group3':
             folder = '../data/v_config1-lcb'
-            iterations = np.max([int(i.split('_')[3].split('.')[0]) for i in os.listdir(folder)])
-
+            _ = [int(i.split('_')[1].split('.')[0]) for i in os.listdir(folder)]
+            iter_min, iter_max = np.min(_), np.max(_)
+        
+            
+    with st.container(border=True):
         with row1_col2:
-            iteration = st.selectbox('select iteration', np.arange(iterations)+1)
+            number = st.number_input('Select a number',min_value=0,max_value=9,value=5)
+            selected_number = str(number)
+            iteration = st.number_input('Select iteration', min_value=iter_min+1,max_value=iter_max+1,value=10)
+            
 
     # get filename
-    if group == 'group1_h':
-        filename = folder + '/' + str(number) + '_' + str(iteration) + '.csv'
-    elif group == 'group2_h':
-        filename = folder + '/h_' + str(number) + '_' + str(iteration) + '.csv'
-    elif group == 'group3_v':
-        filename = folder + '/v_config1_' + str(number) + '_' + str(iteration) + '.csv'
+    if group == 'Horizontal group1':
+        filename = folder + '/' + selected_number + '_' + str(iteration) + '.csv'
+    elif group == 'Horizontal group2':
+        filename = folder + '/h_' + selected_number + '_' + str(iteration) + '.csv'
+    elif group == 'Vertical group3':
+        filename = folder + '/v_config1_' + selected_number + '_' + str(iteration) + '.csv'
 
-    but = st.button('Press to proceed')
+    button = st.button('Press to proceed')
 
-    if but:
+    if button:
         row2_col1, row2_col2= st.columns(2)
 
         # load file
         data = pd.read_csv(filename)
-        # calculate position
+        # calculate position 2D
         position_x = calculate_position_irregular(data.raw_acceleration_x, data.t)
         position_y = calculate_position_irregular(data.raw_acceleration_y, data.t)
         position_z = calculate_position_irregular(data.raw_acceleration_z, data.t)
+        # calculate position for model ESN
+        data['pos_x'] = double_integrate(data,'raw_acceleration_x')
+        data['pos_y'] = double_integrate(data,'raw_acceleration_y')
+        data['pos_z'] = double_integrate(data,'raw_acceleration_z')
 
         
 
@@ -86,53 +95,49 @@ def main():
                 model = pickle.load(open('ressources/RandomForestClasssifer_2D.sav', 'rb'))
                 scaler = pickle.load(open('ressources/scaler', 'rb'))
                 preds = (model.predict(scaler.transform(num.fillna(0))))
+                with open('ressources/esn_model3.pickle', 'rb') as f:
+                    model_esn = pickle.load(f)
+                print(data.shape)
+                print(model_esn.nodes)
+                print(data)
+                preds_esn = [np.argmax(a) for a in model_esn.run(np.array(data))]
+                
                 # display predictions
-                preds_bin = [make_binary(b) for b in preds]
                 target_bin = np.tile(make_binary(number),(len(preds),1))
-
-                # # reservoir
-                # model_res = pickle.load(open('ressources/RC_ESN_sequential.sav','rb'))
-                # preds_res = model_res.run(data)
-                # preds_bin_res = [make_binary(b) for b in preds_res]
-
-        # make figure
-        fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(10, 6))  # Create a figure with two axes
-        t = len(data)
-        # initialize scatter plot
-        ax1.scatter(position_x[0], position_y[0], c="b", s=5)
-        ax1.set(xlim=[position_x.min(),position_x.max()],\
-                ylim=[position_y.min(),position_y.max()],\
-                    xlabel='position X', ylabel='position Y')
-        ax1.set_title("Position")
-        ax2.set_yticklabels("")
-        ax2.set_title("Predictions RFC")
-
-        # ax3.set_yticklabels("")
-        # ax3.set_title("Predictions reservoir")
-
-        the_plot = st.pyplot(fig)
-        def update():
-            x = position_x[:i]
-            y = position_y[:i]
-            #data_slice = np.stack([x, y]).T
-            #scat.set_offsets(data_slice)
-            ax1.scatter(x,y,c='b',s=5)
-
-            pred_bin = (np.concatenate((preds_bin[:1+i] , np.tile(np.zeros(10),(len(preds)-i+1,1))), axis=0))
-            sns.heatmap(pred_bin,alpha=0.5, cbar=False, yticklabels=False, ax=ax2)
-            sns.heatmap(target_bin,alpha=0.2, cbar=False, yticklabels=False, ax=ax2)
-
-            # pred_bin_res = (np.concatenate((preds_bin_res[:1+i] , np.tile(np.zeros(10),(len(preds)-i+1,1))), axis=0))
-            # sns.heatmap(pred_bin_res,alpha=0.5, cbar=False, yticklabels=False, ax=ax3)
-            # sns.heatmap(target_bin,alpha=0.2, cbar=False, yticklabels=False, ax=ax3)
+                preds_bin = [make_binary(b) for b in preds]
+                preds_bin_esn = [make_binary(b) for b in preds_esn]
 
 
-            the_plot.pyplot(fig)
-        
+        with st.spinner('Create rendering...'):
+            # make figure
+            fig, (ax1, ax2, ax3) = plt.subplots(1, 3, figsize=(10, 6))  # Create a figure with two axes
+            t = len(data)
+            # initialize scatter plot
+            ax1.scatter(position_x[0], position_y[0], c="b", s=5)
+            
+            ax1.set_title("Position")
+            ax2.set_yticklabels("")
+            ax2.set_title("Random Forest")
+            ax3.set_title("Reservoir Computing")
 
-        for i in range(t): 
-            print(i)
-            update()
+            
+            def update(i):
+                ax1.scatter(position_x[:i], position_y[:i], c="b", s=5)
+                ax1.set(xlim=[position_x.min(),position_x.max()],\
+                    ylim=[position_y.min(),position_y.max()],\
+                        xlabel='position X', ylabel='position Y')
+                pred_bin = np.concatenate((preds_bin[:1+i], np.tile(np.zeros(10), (len(preds)-i+1, 1))), axis=0)
+                pred_esn = np.concatenate((preds_bin_esn[:1+i], np.tile(np.zeros(10), (len(preds)-i+1, 1))), axis=0)
+                sns.heatmap(pred_bin,alpha=0.5, cbar=False, yticklabels=False, ax=ax2)
+                sns.heatmap(target_bin,alpha=0.2, cbar=False, yticklabels=False, ax=ax2)
+                sns.heatmap(pred_esn,alpha=0.5, cbar=False, yticklabels=False, ax=ax3)
+                sns.heatmap(target_bin,alpha=0.2, cbar=False, yticklabels=False, ax=ax3)
+
+            ani = FuncAnimation(fig, update, frames=len(data), interval=200)
+            ani.save('animation.gif', writer='pillow', fps=10)
+                    
+        st.title('Animated Plot')
+        st.image('animation.gif')
 
 
 if __name__ == '__main__':
