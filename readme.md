@@ -7,11 +7,12 @@ L’objectif de ce Use Case était de développer un dispositif permettant de re
 automatiquement les chiffres tracés à l’aide d’un capteur Z motion1.
 -https://6tron.io/use_case/demo-z-motion-ble-imu
 
-Afin de pouvoir avoir un jeu de données à analyser, chacun des trois groupes a saisi, à l’aide
-des capteurs, plusieurs séries de nombres allant de 0 à 9, sur tables pour certains et dans
-l’espace (à l’horizontal mais aussi aléatoirement dans d’autres sens) pour d’autres. Ces
-données ont été collectées via la console Linux, en initiant un enregistrement via un script
-python fourni par CATIE.
+Problématique : Classification multiclasse de series temporelles 
+
+Afin de pouvoir avoir un jeu de données à analyser, trois different groupes ont saisi, à l’aide
+des capteurs, plusieurs séries de nombres allant de 0 à 9, en 2D sur tables/murs et en 3D dans
+l’espace. Les données ont été collectées via la console Linux mise à disposition par CATIE en initiant un script
+python. Il existe trois mode d'aquisitions, nous avons utilisé les configurations 1 et 3.
 
 Pour la Configuration 1 :
 - « t » qui représente le timestamp (il n’est pas toujours régulier)
@@ -29,6 +30,7 @@ représenter les composantes d’un quaternion, une représentation mathématiqu
 orientation dans l’espace. En d’autres termes, cela va décrire l’orientation 3D du
 capteur.
 
+Méthodologie : Après aquisition des données, le tracé des chiffres est reconstitué à partir des accelerations sur 3 axes. Les séries temporelles sont compréssées et leur valeurs statistiques sont utilisées à des fin de classification multiclasse en comparant la précisions pour la regression logisitique, un arbre de decision et un un gradient boosting classifier. Ensuite les series temporelles brutes sont utilisées et chaque pas de temps est classifié avec un modèle echo state network (ESN: un type de réservoir computing qui utilise un réseau neuronal récurrent avec une couche cachée peu connectée). Finalement, une application streamlit est mise à dispoition pour visualiser le processus de decision de chacune des aquisitions de nombres au cours du temps.
 
 Les differents notebooks sont organisé :
 - visualisation : 
@@ -46,10 +48,10 @@ Les differents notebooks sont organisé :
 
 
 Application streamlit:
-1- techarger localement.
-2- créer virtual environment
-3- executer app.py (les requirements seront automatiquement installés)
+1- techarger localement (git clone https://github.com/RCaz33/Time-series_Multiclass-classification_Reservoir-computing-INRIA).
+2- créer virtual environment (python3 venv .venv; source .venv/bin/activate)
+3- installer streamlit et executer app.py (pip install streamlit; streamlit run app.py)
 
-L'application permet de selectionner une des données enregistrée et de voir pas à pas la prédiction donnée par le modèle RandomForestClassifier
+L'application permet de selectionner une des données enregistrée et de voir pas à pas la prédiction donnée par les modèle RandomForestClassifier et ESN entrainés sur tous les datasets.
 
 ![Alt text](screenshot_app.png)
