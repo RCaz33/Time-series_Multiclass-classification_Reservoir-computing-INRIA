@@ -1,56 +1,131 @@
-As part of the AI 4 Industry (https://www.ai4industry.fr/), we had the opportunity to participate in the Use Case of
-CATIE, technological center specializing in research, development and innovation
-in the fields of information and electronics.
--https://www.catie.fr/
+# 🧠 Multiclass Time Series Classification with Reservoir Computing
 
-The objective of this Use Case was to develop a device to recognize
-automatically trace the numbers using a Z motion1 sensor.
--https://6tron.io/use_case/demo-z-motion-ble-imu
+## 🔍 Context
 
-Problem: Multiclass classification of time series
+As part of the **AI4Industry** initiative ([ai4industry.fr](https://www.ai4industry.fr)), we had the opportunity to participate in a Use Case proposed by **CATIE**, a technology center specializing in research, development, and innovation in information and electronics.
+More info: [catie.fr](https://www.catie.fr)
 
-In order to have a set of data to analyze, three different groups entered, using
-sensors, several series of numbers going from 0 to 9, in 2D on tables/walls and in 3D in
-space. The data was collected via the Linux console made available by CATIE by initiating a script python. There are three acquisition modes, we used configurations 1 and 3.
+🎯 **Objective**: Develop a system to **automatically recognize digits drawn using a Z-Motion sensor**.
 
-For Configuration 1:
-- “t” which represents the timestamp (it is not always regular)
-- “raw acceleration x”, “raw acceleration y” and “raw acceleration z” which represent
-the linear accelerations of the sensor measured along the x, y and z axes.
-- “magnetic field x”, “magnetic field y” and “magnetic field z” which correspond to the
-magnetic fields measured along the x, y and z axes.
+Sensor used: [Z-Motion - 6Tron](https://6tron.io/use_case/demo-z-motion-ble-imu)
 
-For Configuration 3:
-- “t” which represents the timestamp (it is not always regular)
-- “raw acceleration x”, “raw acceleration y” and “raw acceleration z” which represent
-the linear accelerations of the sensor measured along the x, y and z axes.
-- “quaternion w”, “quaternion x”, “quaternion y” and “quaternion z” which go
-represent the components of a quaternion, a mathematical representation of a
-orientation in space. In other words, this will describe the 3D orientation of the
-sensor.
+---
 
-Methodology: After data acquisition, the plot of the figures is reconstructed from the accelerations on 3 axes. The time series are compressed and their statistical values are used for multiclass classification purposes by comparing the accuracies for logistic regression, a decision tree and a gradient boosting classifier. Then the raw time series are used and each time step is classified with an echo state network model (ESN: a type of reservoir computing that uses a recurrent neural network with a loosely connected hidden layer). Finally, a streamlit application is made available to visualize the decision process of each number acquisition over time.
+## 🧩 Problem
 
-The different notebooks are organized:
-- visualization:
-     allows you to display the positions of the sensor in 3 dimensions during the acquisition of a digit (can take into account irregular time intervals by averaging the acceleration over 2 time steps).
-- feature_importance:
-     ANOVA analysis and comparison to coefficients (features_importance) for the optimized scikit-learn 'LogisticRegression' and 'RandomForestClassifier' models. Comparison of accuracy with parsimonious optimized models. (precision: 0.94, recall: 0.93)
-- feature_engineering:
-     Optimization of 3 scikit-learn models (LogisticRegression(), DecisionTreeClassifier(), RandomForestClassifier()) by feature engineering. (score: 0.96, time: 0.0044)
-- reservoir_computing:
-     Training of a simple reservoir (model = [source >> reservoir, source] >> readout) and optimization of the number of neurons, leaking rate and spectral radius. Prediction by time step (score on the entire dataset: 0.8137).
-- reservoir_deep:
-     Complex reservoir architecture (HierarchicalESN, DeepESLmodel, Multi_input)
-- realtime:
-     Fine optimization of the RandomForest model for the application
+**Multiclass classification of time series data.**
 
+Three groups collected data by drawing digits from 0 to 9 using the Z-Motion sensor. The digits were drawn in 2D (on tables/walls) and 3D (in space). The data was recorded using a Linux console and a Python script provided by CATIE.
 
-streamlit app:
-1- download locally (git clone https://github.com/RCaz33/Time-series_Multiclass-classification_Reservoir-computing-INRIA).
-2- create virtual environment (python3 venv .venv; source .venv/bin/activate)
-3- install streamlit and run app.py (pip install streamlit; streamlit run app.py)
+We used **configurations 1 and 3** out of the three available:
 
-The application allows you to select one of the recorded data and see step by step the prediction given by the RandomForestClassifier and ESN models trained on all the datasets.
+### 🔧 Configuration 1
 
-![Alt text](screenshot_app.png)
+* `t`: Timestamp (not always regular)
+* `raw acceleration x/y/z`: Linear acceleration on x, y, and z axes
+* `magnetic field x/y/z`: Magnetic fields on x, y, and z axes
+
+### 🔧 Configuration 3
+
+* `t`: Timestamp
+* `raw acceleration x/y/z`: Linear acceleration
+* `quaternion w/x/y/z`: Quaternion components representing 3D orientation
+
+---
+
+## 🧪 Methodology
+
+1. **Data Acquisition & Preprocessing**
+
+   * Reconstruction of digit trajectories from accelerations.
+   * Compression of time series and extraction of statistical features for classification.
+
+2. **Classical Modeling Approaches**
+
+   * Models tested: Logistic Regression, Decision Tree, Gradient Boosting
+   * Comparison of precision and recall
+
+3. **Reservoir Computing (ESN)**
+
+   * Use of raw time series with an **Echo State Network** (ESN)
+   * Time step-by-step prediction ✨
+
+4. **Streamlit App**
+
+   * Interactive visualization of predictions over time ⏳
+
+---
+
+## 📁 Project Structure
+
+```bash
+📁 app/
+ ┣ 📁 ressources/         # Models, GIF, .sav files
+ ┣ 📄 app.py              # Streamlit app
+ ┣ 📄 utils.py            # Utility functions
+ ┣ 📄 requirements.txt    # Dependencies
+ ┣ 📄 debug_app.ipynb     # Debug notebook
+📁 data/                  # Data files
+📄 feature_engineering.ipynb
+📄 feature_importance.ipynb
+📄 Visualisation.ipynb
+📄 realtime.ipynb
+📄 readme.md
+📄 readme_en.md
+```
+
+---
+
+## 📓 Notebook Descriptions
+
+* **Visualisation.ipynb** 🛰️
+  3D display of sensor movement during digit tracing. Handles irregular timestamps using sliding mean.
+
+* **feature\_importance.ipynb** 🧮
+  ANOVA analysis + feature importance comparison (Logistic Regression & Random Forest).
+  ✅ Precision: **0.94** | Recall: **0.93**
+
+* **feature\_engineering.ipynb** 🛠️
+  Feature engineering and model optimization (LogisticRegression, DecisionTree, RandomForest).
+  ✅ Score: **0.96** | Time: **0.0044s**
+
+* **reservoir\_computing** 🧠
+  Training a simple ESN (Echo State Network), optimizing neuron count, leaking rate, spectral radius.
+  ✅ Dataset-wide score: **0.8137**
+
+* **reservoir\_deep** 🧬
+  Complex reservoir architectures: Hierarchical ESN, Deep ESN, multi-input setups
+
+* **realtime.ipynb** ⚙️
+  Fine-tuning of the Random Forest model for real-time prediction
+
+---
+
+## 🚀 Streamlit App
+
+### Run the app locally:
+
+```bash
+# 1. Clone the repository
+$ git clone https://github.com/RCaz33/Time-series_Multiclass-classification_Reservoir-computing-INRIA
+$ cd Time-series_Multiclass-classification_Reservoir-computing-INRIA
+
+# 2. Create and activate a virtual environment
+$ python3 -m venv .venv
+$ source .venv/bin/activate
+
+# 3. Install dependencies and launch the app
+$ pip install streamlit
+$ streamlit run app/app.py
+```
+
+### Features 🖥️
+
+* Select a recorded acquisition
+* Step-by-step prediction display by **RandomForestClassifier** and **ESN**
+
+![App screenshot](screenshot_app.png)
+
+---
+
+For questions or contributions, feel free to open an issue or a pull request! 🚀
